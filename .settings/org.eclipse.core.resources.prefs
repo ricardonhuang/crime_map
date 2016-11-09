@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+encoding/create_database.py=utf-8
+encoding/crimemap.py=utf-8
+encoding/dbhelper.py=utf-8
+encoding/mockdbhelper.py=utf-8
