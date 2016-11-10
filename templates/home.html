@@ -10,12 +10,13 @@
 	<body>
 	<h1>CrimeMap</h1>
 	<p>A map of recent criminal activity in the Grahamstown area.</p>
-	<div id="container" style="width:70%;height:500px;"></div>
+	<div id="map-canvas" style="width:70%;height:500px;"></div>
 	<script type="text/javascript">
-		var map = new AMap.Map('container',{
+		var map = new AMap.Map('map-canvas',{
             resizeEnable: false
        });
         map.on('moveend', getCity);
+        
     	function getCity() {
         map.getCity(function(data) {
             if (data['province'] && typeof data['province'] === 'string') {
@@ -33,7 +34,32 @@
 			document.getElementById('latitude').value = e.lnglat.getLat();
 			document.getElementById('longitude').value = e.lnglat.getLng();
 		});
- 
+		
+		
+		var markers = {{crimes|safe}}
+		for (var i = 0, marker; i < markers.length; i++) {
+        marker = new AMap.Marker({
+            map: map,
+            position: [markers[i].longitude,markers[i].latitude],
+        });
+        
+        marker.setLabel({
+        	offset: new AMap.Pixel(20, 20),
+        	content:markers[i].date + "\n" +markers[i].category + "\n" + markers[i].description}
+        	)
+    }
+		
+		/*markers.forEach(function(marker) {
+        new AMap.Marker({
+            map: map,
+            position: [marker.longitude,marker.latitude],
+            
+        });
+      
+		marker.setTitle(marker.date + "\n" +marker.category + "\n" + marker.description)
+    }); */
+ 		
+		
     	
 	</script>
 	<div id="newcrimeform">
