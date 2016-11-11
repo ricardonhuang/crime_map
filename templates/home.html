@@ -11,32 +11,67 @@
 	<h1>CrimeMap</h1>
 	<p>A map of recent criminal activity in the Grahamstown area.</p>
 	<div id="map-canvas" style="width:70%;height:500px;"></div>
-	<script type="text/javascript">
+
+	<div id="newcrimeform">
+		<h2>Submit new crime</h2>
+		{% if error_message %}
+			<div id="error"><p>{{error_message}}</p></div>
+		{% endif %}
+		<form action="/submitcrime" method="POST">
+			<label for="category">Category</label>
+			<select name="category" id="category">
+				{% for category in categories %}
+					<option value="{{category}}">{{category}}</option>
+				{% endfor %}
+		</select>
+		<label for="date">Date</label>
+		<input name="date" id="date" type="date">
+		<label for="latitude">Latitude</label>
+		<input name="latitude" id="latitude"type="text" readonly>
+		<label for="longitude">Longitude</label>
+		<input name="longitude" id="longitude"type="text" readonly>
+		<label for="description">Description</label>
+		<textarea name="description" id="description"
+			placeholder="A brief but detailed
+		description of the crime"></textarea>
+		<input type="submit" value="Submit">
+		<input type="button" class="button" value="清除无效点标记" id="clearMarker"/>
+		</form>
+		
+		
+	</div>
+		<script type="text/javascript">
 		var map = new AMap.Map('map-canvas',{
             resizeEnable: false
        });
-        map.on('moveend', getCity);
-        
-    	function getCity() {
+        /*map.on('moveend', getCity);
+        function getCity() {
         map.getCity(function(data) {
             if (data['province'] && typeof data['province'] === 'string') {
                 document.getElementById('info').innerHTML = '城市：' + (data['city'] || data['province']);
             	}
         	});
-    	}
-    	console.log("A message");
+    	};
     	
+    	console.log("A message");*/
+    	var markers_thistime=[];
         AMap.event.addListener(map, "click", function(e) {
-			new AMap.Marker({
+			marker=new AMap.Marker({
 				position: e.lnglat,
-				map: map
+				map: map,
+				draggable: true,
+        		cursor: 'move',
+        		raiseOnDrag: true
+				
 			});
 			document.getElementById('latitude').value = e.lnglat.getLat();
 			document.getElementById('longitude').value = e.lnglat.getLng();
+			markers_thistime.push(marker);
+			console.log(markers_thistime);
 		});
 		
 		
-		var markers = {{crimes|safe}}
+		var markers = {{crimes|safe}};
 		for (var i = 0, marker; i < markers.length; i++) {
         marker = new AMap.Marker({
             map: map,
@@ -47,8 +82,11 @@
         	offset: new AMap.Pixel(20, 20),
         	content:markers[i].date + "\n" +markers[i].category + "\n" + markers[i].description}
         	)
-    }
-		
+    };
+		/*AMap.event.addDomListener(document.getElementById('clearMarker'), 'click', function(markers_thistime) {
+        	map.remove(markers_thistime);
+        	
+    		}, false);*/
 		/*markers.forEach(function(marker) {
         new AMap.Marker({
             map: map,
@@ -59,32 +97,10 @@
 		marker.setTitle(marker.date + "\n" +marker.category + "\n" + marker.description)
     }); */
  		
+ 		
 		
     	
 	</script>
-	<div id="newcrimeform">
-		<h2>Submit new crime</h2>
-		<form action="/submitcrime" method="POST">
-			<label for="category">Category</label>
-			<select name="category" id="category">
-				<option value="mugging">Mugging</option>
-				<option value="breakin">Break-in</option>
-			</select>
-		<label for="date">Date</label>
-		<input name="date" id="date" type="date">
-		<label for="latitude">Latitude</label>
-		<input name="latitude" id="latitude"
-		type="text">
-		<label for="longitude">Longitude</label>
-		<input name="longitude" id="longitude"
-		type="text">
-		<label for="description">Description</label>
-		<textarea name="description" id="description"
-			placeholder="A brief but detailed
-		description of the crime"></textarea>
-		<input type="submit" value="Submit">
-		</form>
-	</div>
 
 	</body>
 </html>

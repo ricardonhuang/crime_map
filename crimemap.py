@@ -8,7 +8,7 @@ Created on 2016年11月9日
 from flask import Flask
 from flask import render_template
 from flask import request
-import json
+import json,datetime,dateparser
 
 flag=False
 if flag:
@@ -18,15 +18,23 @@ else:
 
 app = Flask(__name__)
 DB = DBHelper()
+categories = ['mugging', 'break-in']
 
+
+def format_date(userdate):
+    date = dateparser.parse(userdate)
+    try:
+        return datetime.datetime.strftime(date, "%Y-%m-%d")
+    except TypeError:
+        return None
 
 @app.route("/")
-def home():
+def home(error_message=None):
     
     crimes = DB.get_all_crimes()
     crimes = json.dumps(crimes)
     
-    return render_template("home.html", crimes=crimes)
+    return render_template("home.html" ,crimes=crimes,categories=categories, error_message=error_message)
     
         
 
@@ -52,9 +60,17 @@ def clear():
 @app.route("/submitcrime", methods=['POST'])
 def submitcrime():
     category = request.form.get("category")
+    if category not in categories:
+        return home()
     date = request.form.get("date")
-    latitude = float(request.form.get("latitude"))
-    longitude = float(request.form.get("longitude"))
+    date = format_date(request.form.get("date"))
+    if not date:
+        return home("Invalid date. Please use yyyy-mm-dd format")
+    try:
+        latitude = float(request.form.get("latitude"))
+        longitude = float(request.form.get("longitude"))
+    except ValueError:
+        return home()
     description = request.form.get("description").encode('utf-8')
     DB.add_crime(category, date, latitude, longitude, description)
     return home()
